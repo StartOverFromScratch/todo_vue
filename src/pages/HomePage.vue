@@ -1,9 +1,16 @@
 <script setup>
-import { ref } from 'vue'
+// import { ref } from 'vue'
+// import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useTodoStore } from '../stores/todoStore'
 const s = useTodoStore()
 const text = ref('')
-const add = () => { s.add(text.value); text.value = '' }
+// const add = () => { s.add(text.value); text.value = '' }
+const add = async () => { await s.add(text.value); text.value = '' }
+
+// onMounted(() => { s.fetch() })
+onMounted(() => s.startWatch())
+onBeforeUnmount(() => s.stopWatch())
 </script>
 
 <template>

@@ -4,22 +4,22 @@ let unsub = null
 export const useTodoStore = defineStore('todo', {
   state: () => ({ items: [], isWatching: false, adding: false }),
   actions: {
-    startWatch(){
+    startWatch(ownerId){
       if (unsub) return
       this.isWatching = true
-      unsub = subscribeTodos(items => { this.items = items })
+      unsub = subscribeTodos(ownerId, items => { this.items = items })
     },
     stopWatch(){
       if (unsub){ unsub(); unsub = null }
       this.isWatching = false
     },
-    async fetch(){ this.items = await listTodos() },
-    async add(title){
+    async fetch(ownerId){ this.items = await listTodos(ownerId) },
+    async add(title, ownerId){
       const t = title?.trim(); if(!t) return
       if (this.adding) return          // 連打ガード
       this.adding = true
       try {
-        const created = await addTodo(t)
+        const created = await addTodo(t, ownerId)
         // 監視中は onSnapshot が配列を最新化するのでローカルでいじらない
         if (!this.isWatching) {
           this.items.unshift(created)
@@ -43,6 +43,3 @@ export const useTodoStore = defineStore('todo', {
     undone:(s)=>s.items.filter(i=>!i.done)
   }
 })
-
-
-

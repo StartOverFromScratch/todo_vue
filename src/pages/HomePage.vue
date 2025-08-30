@@ -9,12 +9,32 @@ const s = useTodoStore()
 const user = ref(null)
 const email = ref('')
 const pass = ref('')
+const err = ref('')
 
 const text = ref('')
 const add = async () => { await s.add(text.value, user.value?.uid || null); text.value = '' }
 
-const doLogin = async () => { await signInWithEmailAndPassword(auth, email.value, pass.value); email.value=''; pass.value='' }
-const doSignup = async () => { await createUserWithEmailAndPassword(auth, email.value, pass.value); email.value=''; pass.value='' }
+const doLogin = async () => {
+  err.value = ''
+  try {
+    if (!email.value || !pass.value) throw new Error('メールとパスワードを入力してください')
+    await signInWithEmailAndPassword(auth, email.value, pass.value)
+    email.value=''; pass.value=''
+  } catch (e) {
+    err.value = e?.message || 'ログインに失敗しました'
+  }
+}
+const doSignup = async () => {
+  err.value = ''
+  try {
+    if (!email.value || !pass.value) throw new Error('メールとパスワードを入力してください')
+    if (pass.value.length < 6) throw new Error('パスワードは6文字以上にしてください')
+    await createUserWithEmailAndPassword(auth, email.value, pass.value)
+    email.value=''; pass.value=''
+  } catch (e) {
+    err.value = e?.message || '新規登録に失敗しました'
+  }
+}
 const doLogout = async () => { await signOut(auth) }
 
 onMounted(() => {
@@ -29,17 +49,11 @@ onBeforeUnmount(() => s.stopWatch())
 </script>
 
 <template>
-  <nav style="display:flex; gap:12px; align-items:center; margin:12px 0">
-    <router-link to="/">Home</router-link>
-    <router-link to="/stats">Stats</router-link>
-    <span style="margin-left:auto" />
-    <template v-if="user">
+  <template v-if="user">
+    <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end; margin:8px 0 12px">
       <span>こんにちは、{{ user.email }}</span>
       <button type="button" @click="doLogout">ログアウト</button>
-    </template>
-  </nav>
-
-  <template v-if="user">
+    </div>
     <h1>Todo</h1>
     <input v-model="text" placeholder="やること">
     <button type="button" @click="add">追加</button>
@@ -68,6 +82,7 @@ onBeforeUnmount(() => s.stopWatch())
         <button type="button" @click="doLogin">ログイン</button>
         <button type="button" @click="doSignup">新規登録</button>
       </div>
+      <p v-if="err" style="color:#b00020; margin-top:8px">{{ err }}</p>
     </div>
   </template>
 </template>

@@ -16,7 +16,7 @@ onBeforeUnmount(() => s.stopWatch())
 <template>
   <h1>Todo</h1>
   <input v-model="text" placeholder="やること">
-  <button @click="add">追加</button>
+  <button type="button" @click="add">追加</button>
 
   <ul>
     <li v-for="t in s.items" :key="t.id">

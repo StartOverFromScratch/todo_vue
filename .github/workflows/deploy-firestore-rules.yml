@@ -1,0 +1,20 @@
+name: Deploy Firestore Rules
+on:
+  push:
+    paths:
+      - "firestore.rules"
+      - ".github/workflows/deploy-firestore-rules.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Firebase CLI アクション。--project はあなたのIDに合わせる
+      - uses: w9jds/firebase-action@v13.24.0
+        with:
+          args: deploy --only firestore:rules --project todo-app-9d401
+        env:
+          # いま追加した Secret（JSONの中身そのまま）
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

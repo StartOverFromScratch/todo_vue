@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,4 +15,23 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
-// console.log('API_KEY head:', (import.meta.env.VITE_FIREBASE_API_KEY || '').slice(0,6))
+// --- Debug: show environment flags ---
+console.log('[FB] DEV:', import.meta.env.DEV,
+            'USE_EMU:', import.meta.env.VITE_USE_FIREBASE_EMULATOR)
+
+// --- Connect to emulators in development when flag is true ---
+if (import.meta.env.DEV && String(import.meta.env.VITE_USE_FIREBASE_EMULATOR) === 'true') {
+  console.log('[FB] Connecting to emulators (Firestore:8080, Auth:9099)')
+  try {
+    connectFirestoreEmulator(db, '127.0.0.1', 8080)
+  } catch (e) {
+    console.warn('[FB] Firestore emulator connect failed:', e)
+  }
+  try {
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  } catch (e) {
+    console.warn('[FB] Auth emulator connect failed:', e)
+  }
+} else {
+  console.log('[FB] Using production Firebase backends')
+}

@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "dev": "todo-app-dev",
+    "stg": "todo-app-stg",
+    "prod": "todo-app-9d401",
+    "default": "todo-app-9d401"
+  }
+}

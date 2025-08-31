@@ -40,4 +40,4 @@ npm run test:unit
 npm run lint
 ```
 
-CI test
+CI test２

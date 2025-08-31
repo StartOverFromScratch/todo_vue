@@ -28,3 +28,4 @@ service cloud.firestore {
            data.ownerId is string;
   }
 }
+

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useTodoStore } from '../stores/todoStore'
-import { auth } from '../lib/firebase'
+import { auth, signInWithGoogle } from '../lib/firebase'
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth'
 
 const s = useTodoStore()
@@ -36,7 +36,18 @@ const doSignup = async () => {
   }
 }
 const doLogout = async () => { await signOut(auth) }
-
+const doGoogleLogin = async () => {
+  err.value = ''
+  try {
+    await signInWithGoogle()
+  } catch (e) {
+    // 代表的な衝突：同じメールで別プロバイダ登録済み
+    const msg = e?.code === 'auth/account-exists-with-different-credential'
+      ? '同じメールで別のログイン方法が登録されています。メール/パスワードでログイン後、アカウント連携が必要です。'
+      : (e?.message || 'Googleログインに失敗しました')
+    err.value = msg
+  }
+}
 onMounted(() => {
   // 認証状態を監視し、ユーザー毎のTodoだけを購読
   onAuthStateChanged(auth, (u) => {
@@ -81,6 +92,7 @@ onBeforeUnmount(() => s.stopWatch())
       <div style="display:flex; gap:8px">
         <button type="button" @click="doLogin">ログイン</button>
         <button type="button" @click="doSignup">新規登録</button>
+        <button type="button" @click="doGoogleLogin">Googleでログイン</button>
       </div>
       <p v-if="err" style="color:#b00020; margin-top:8px">{{ err }}</p>
     </div>

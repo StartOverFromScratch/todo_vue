@@ -1,6 +1,10 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
-import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import {
+  getAuth, connectAuthEmulator,
+  GoogleAuthProvider, signInWithPopup, signInWithCredential,
+  setPersistence, browserLocalPersistence
+} from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,7 +19,11 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
+// 任意：セッション維持を明示（リロード後もログイン継続）
+setPersistence(auth, browserLocalPersistence).catch(() => {})
+
 // --- Debug: show environment flags ---
+
 console.log('[FB] DEV:', import.meta.env.DEV,
             'USE_EMU:', import.meta.env.VITE_USE_FIREBASE_EMULATOR)
 
@@ -34,4 +42,25 @@ if (import.meta.env.DEV && String(import.meta.env.VITE_USE_FIREBASE_EMULATOR) ==
   }
 } else {
   console.log('[FB] Using production Firebase backends')
+}
+
+// === Google サインイン（本番/エミュ両対応）===
+// const googleProvider = new GoogleAuthProvider()
+export async function signInWithGoogle() {
+  const useEmu = import.meta.env.DEV && String(import.meta.env.VITE_USE_FIREBASE_EMULATOR) === 'true'
+  if (useEmu) {
+    // Auth Emulator では外部ポップアップ不可。strict JSON 形式の fake id_token を渡す
+    const fakeIdToken = JSON.stringify({
+      sub: crypto.randomUUID(),
+      email: 'emu-google@example.com',
+      email_verified: true,
+      name: 'Emu Google User',
+      picture: 'https://example.com/avatar.png'
+    })
+    const cred = GoogleAuthProvider.credential(fakeIdToken)
+    return signInWithCredential(auth, cred)
+  } else {
+    const provider = new GoogleAuthProvider()
+    return signInWithPopup(auth, provider)
+  }
 }
